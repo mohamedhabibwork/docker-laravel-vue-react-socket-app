@@ -13,6 +13,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update \
     && apt-get install -y gnupg gosu curl ca-certificates zip unzip git supervisor sqlite3 libcap2-bin libpng-dev python2 \
+    && add-apt-repository ppa:ubuntugis/ppa \
     && mkdir -p ~/.gnupg \
     && chmod 600 ~/.gnupg \
     && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
@@ -37,6 +38,7 @@ RUN apt-get update \
     && apt-get install -y yarn \
     && apt-get install -y mysql-client \
     && apt-get install -y postgresql-client \
+    && apt-get install -y postgis postgresql postgis-3.1.3 \
     && apt-get -y autoremove \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

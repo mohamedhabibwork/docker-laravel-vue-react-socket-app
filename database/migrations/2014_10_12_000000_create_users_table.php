@@ -13,10 +13,13 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
+        DB::unprepared('create or replace extension "uuid-ossp";');
+        DB::unprepared('create or replace extension "postgis";');
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('channel')->unique()->default(new \Illuminate\Database\Query\Expression('uuid_generate_v4()'));
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
