@@ -107,7 +107,9 @@ services:
         networks:
             - sail
     pgsql:
-        image: 'postgres:13'
+        build:
+            context: docker/postgres
+            dockerfile: Dockerfile
         ports:
             - '${FORWARD_DB_PORT:-5432}:5432'
         environment:
@@ -198,40 +200,47 @@ services:
             - pgsql
         networks:
             - databasepgsql
-#    apm-server:
-#        image: 'docker.elastic.co/apm/apm-server:7.6.1'
-#        cap_add: [ "CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID" ]
-#        cap_drop: [ "ALL" ]
-#        ports:
-#            - '${ELASTIC_APM_SERVER:-8200}:8200'
-#        networks:
-#            - sail
-#        volumes:
-#            - './apm-server.docker.yml:/usr/share/apm-server/apm-server.yml:ro'
-#        command: >
-#            apm-server -e
-#              -E apm-server.rum.enabled=true
-#              -E setup.template.settings.index.number_of_replicas=0
-#              -E apm-server.kibana.enabled=true
-#              -E output.elasticsearch.hosts=["elasticsearch:9200"]
-#        healthcheck:
-#            interval: 10s
-#            retries: 12
-#            test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
-#    elasticsearch:
-#        container_name: elasticsearch
-#        image: 'docker.elastic.co/elasticsearch/elasticsearch:7.6.1'
-#        ports:
-#            - '${ELASTIC_SEARCH_SERVER:-9200}:9200'
-#        volumes:
-#            - 'elasticsearch-data:/usr/share/elasticsearch/data'
-#        environment:
-#            - xpack.monitoring.enabled=true
-#            - xpack.watcher.enabled=false
-#            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-#            - discovery.type=single-node
-#        networks:
-#            - sail
+    apm-server:
+        image: 'docker.elastic.co/apm/apm-server:7.6.1'
+        cap_add: [ "CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID" ]
+        cap_drop: [ "ALL" ]
+        ports:
+            - '${ELASTIC_APM_SERVER:-8200}:8200'
+        networks:
+            - sail
+        command: >
+            apm-server -e
+              -E apm-server.rum.enabled=true
+              -E setup.template.settings.index.number_of_replicas=0
+              -E apm-server.kibana.enabled=true
+              -E strict.perms=false
+              -E output.elasticsearch.hosts=["elasticsearch:9200"]
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.0.0-56a61c29-SNAPSHOT
+        ports:
+            - '9200:9200'
+        healthcheck:
+            test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=500ms"]
+            retries: 300
+            interval: 1s
+        environment:
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - "network.host="
+            - "transport.host=127.0.0.1"
+            - "http.host=0.0.0.0"
+            - "cluster.routing.allocation.disk.threshold_enabled=false"
+            - "discovery.type=single-node"
+            - "xpack.security.authc.anonymous.roles=remote_monitoring_collector"
+            - "xpack.security.authc.realms.file.file1.order=0"
+            - "xpack.security.authc.realms.native.native1.order=1"
+            - "xpack.security.enabled=true"
+            - "xpack.license.self_generated.type=trial"
+            - "xpack.security.authc.token.enabled=true"
+            - "xpack.security.authc.api_key.enabled=true"
+            - "logger.org.elasticsearch=${ES_LOG_LEVEL:-error}"
+            - "action.destructive_requires_name=false"
+        networks:
+            - sail
 networks:
     sail:
         driver: bridge
