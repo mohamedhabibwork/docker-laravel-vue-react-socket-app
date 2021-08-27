@@ -13,8 +13,8 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        DB::unprepared('create or replace extension "uuid-ossp";');
-        DB::unprepared('create or replace extension "postgis";');
+        DB::unprepared('create extension "uuid-ossp";');
+        DB::unprepared('create extension "postgis";');
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');

@@ -3,7 +3,7 @@ const expressWs = require('express-ws')(express());
 const app = expressWs.app;
 const expressCors = require('express-cors');
 const PORT = process.env.SOCKET_APP_PORT || 3000;
-const HOST = process.env.SOCKET_APP_HOST || "0.0.0.0";
+const HOST = process.env.SOCKET_APP_HOST || "localhost";
 
 app.use(express.json());
 app.use(expressCors());
