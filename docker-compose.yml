@@ -23,11 +23,13 @@ services:
         networks:
             - sail
         depends_on:
+            - pgsql
             - redis
             - mailhog
             - meilisearch
             - minio
             - selenium
+            - pgadmin
     socket.test:
         image: node
         ports:
@@ -196,8 +198,6 @@ services:
             - "${PGADMIN_PORT:-8080}:80"
         volumes:
             - 'sailpgadmin:/var/lib/pgadmin'
-        links:
-            - pgsql
         networks:
             - databasepgsql
     apm-server:
